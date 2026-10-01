@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RESOLVE 2.0</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#172033;--muted:#6b7280;--line:#e7eaf0;--accent:#315efb;--ok:#14804a;--warn:#a15c00;--danger:#b42318}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#111827;color:#fff;padding:18px 28px;display:flex;justify-content:space-between;align-items:center;gap:20px;position:sticky;top:0;z-index:5}.brand{font-weight:800;letter-spacing:.5px;font-size:20px}.brand span{color:#8ea7ff}.top{display:flex;align-items:center;gap:12px;font-size:13px;color:#d1d5db}.pill{border:1px solid #374151;border-radius:999px;padding:6px 10px}
+main{max-width:1240px;margin:0 auto;padding:26px}.welcome{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:22px}.welcome h1{margin:0 0 6px;font-size:30px}.welcome p{margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 3px 12px rgba(15,23,42,.04)}.metric .label{font-size:13px;color:var(--muted)}.metric .value{font-size:27px;font-weight:800;margin-top:8px}.metric .sub{font-size:12px;color:var(--muted);margin-top:5px}
+.layout{display:grid;grid-template-columns:1.25fr .75fr;gap:16px;margin-top:16px}.section-title{font-weight:750;margin-bottom:14px}.row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.row:last-child{border-bottom:0}.small{font-size:12px;color:var(--muted)}.status{font-size:11px;font-weight:700;border-radius:999px;padding:5px 8px;background:#eef2ff;color:#3b4cca}.money-in{color:var(--ok);font-weight:750}.money-out{color:var(--danger);font-weight:750}
+.actions{display:flex;flex-wrap:wrap;gap:8px}.btn{border:0;border-radius:10px;padding:10px 13px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff}.btn.secondary{background:#eef2ff;color:#3049b8}.btn.ghost{background:#f3f4f6;color:#374151}.btn:disabled{opacity:.5;cursor:not-allowed}
+.quick{display:grid;grid-template-columns:1fr auto;gap:10px}.quick input{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;background:#fff}.result{margin-top:12px;padding:12px;border-radius:12px;background:#f8fafc;border:1px solid var(--line);font-size:13px;white-space:pre-wrap}.result.ok{border-color:#b7e4cb;background:#f0fdf4}.result.warn{border-color:#f0d2a5;background:#fffaf0}
+footer{padding:28px;color:var(--muted);font-size:12px;text-align:center}.empty{color:var(--muted);padding:12px 0}.link{color:var(--accent);text-decoration:none;font-weight:650}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}}@media(max-width:600px){main{padding:16px}.grid{grid-template-columns:1fr 1fr}.welcome{align-items:start;flex-direction:column}.quick{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="brand">RESOLVE <span>2.0</span></div><div class="top"><span class="pill">CORE</span><span id="health">verificando...</span></div></header>
+<main>
+<section class="welcome"><div><h1 id="greeting">Seu painel</h1><p>Memória, casos, financeiro e relatórios em um só lugar.</p></div><div class="actions"><button class="btn secondary" onclick="downloadFile('/reports/'+userId+'/pdf')">PDF</button><button class="btn secondary" onclick="downloadFile('/reports/'+userId+'/excel')">Excel</button></div></section>
+<section class="card" style="margin-bottom:16px"><div class="section-title">Entrada rápida</div><div class="quick"><input id="message" placeholder="Ex.: Fechei um serviço com João por R$ 3.500..."/><button class="btn" onclick="interpret()">Interpretar</button></div><div id="interpretResult" class="result" style="display:none"></div></section>
+<section class="grid">
+<div class="card metric"><div class="label">Receitas</div><div class="value" id="income">R$ 0,00</div><div class="sub">registradas</div></div>
+<div class="card metric"><div class="label">Despesas</div><div class="value" id="expense">R$ 0,00</div><div class="sub">registradas</div></div>
+<div class="card metric"><div class="label">Saldo registrado</div><div class="value" id="balance">R$ 0,00</div><div class="sub">receitas − despesas</div></div>
+<div class="card metric"><div class="label">Casos</div><div class="value" id="casesCount">0</div><div class="sub">em acompanhamento</div></div>
+</section>
+<section class="layout">
+<div class="card"><div class="section-title">Casos recentes</div><div id="cases"><div class="empty">Carregando...</div></div></div>
+<div class="card"><div class="section-title">Movimentações recentes</div><div id="transactions"><div class="empty">Carregando...</div></div></div>
+</section>
+<section class="layout">
+<div class="card"><div class="section-title">Memória</div><div id="memory"><div class="empty">Carregando...</div></div></div>
+<div class="card"><div class="section-title">Atalhos</div><div class="actions"><button class="btn ghost" onclick="location.href='/docs'">API / Swagger</button><button class="btn ghost" onclick="refresh()">Atualizar painel</button></div><div class="small" style="margin-top:14px">Nesta etapa o painel usa o usuário de demonstração/local. Autenticação multiusuário entra na camada de segurança.</div></div>
+</section>
+</main><footer>RESOLVE 2.0 CORE — núcleo operacional</footer>
+<script>
+let userId=localStorage.getItem('resolve_user_id')||'';
+const brl=v=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v||0));
+async function api(url,opt){const r=await fetch(url,opt);if(!r.ok)throw new Error(await r.text());return r.json()}
+async function ensureUser(){if(userId)return;const u=await api('/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Usuário RESOLVE'})});userId=u.id;localStorage.setItem('resolve_user_id',userId)}
+async function refresh(){try{await ensureUser();const [s,c,t,m,h]=await Promise.all([api('/finance/summary/'+userId),api('/cases/'+userId),api('/finance/transactions/'+userId),api('/memory/'+userId),api('/health')]);document.getElementById('health').textContent='online · '+h.version;document.getElementById('greeting').textContent='Olá, usuário';document.getElementById('income').textContent=brl(s.receitas);document.getElementById('expense').textContent=brl(s.despesas);document.getElementById('balance').textContent=brl((s.receitas||0)-(s.despesas||0));document.getElementById('casesCount').textContent=c.length;renderCases(c);renderTransactions(t);renderMemory(m)}catch(e){document.getElementById('health').textContent='erro';console.error(e)}}
+function renderCases(items){const el=document.getElementById('cases');if(!items.length){el.innerHTML='<div class="empty">Nenhum caso registrado.</div>';return}el.innerHTML=items.slice(0,8).map(x=>`<div class="row"><div><b>${esc(x.title)}</b><div class="small">${esc(x.description||'')}</div></div><span class="status">${esc(x.status)}</span></div>`).join('')}
+function renderTransactions(items){const el=document.getElementById('transactions');if(!items.length){el.innerHTML='<div class="empty">Nenhuma movimentação.</div>';return}el.innerHTML=items.slice(0,8).map(x=>`<div class="row"><div><b>${esc(x.category)}</b><div class="small">${esc(x.description||'')}</div></div><span class="${x.kind==='RECEITA'?'money-in':'money-out'}">${x.kind==='RECEITA'?'+':'−'} ${brl(x.amount)}</span></div>`).join('')}
+function renderMemory(m){const el=document.getElementById('memory');const c=(m.cases||[]).length,e=(m.recent_events||[]).length,d=(m.documents||[]).length;el.innerHTML=`<div class="row"><span>Casos</span><b>${c}</b></div><div class="row"><span>Eventos recentes</span><b>${e}</b></div><div class="row"><span>Documentos</span><b>${d}</b></div>`}
+async function confirmInterpretation(id){const box=document.getElementById('interpretResult');box.textContent='Registrando...';try{const r=await api('/interpret/confirm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({interpretation_id:id})});box.innerHTML='<b>Registrado com sucesso.</b><pre>'+esc(JSON.stringify(r,null,2))+'</pre>';box.className='result ok';}catch(e){box.textContent='Não foi possível registrar: '+e.message;box.className='result'}}
+async function interpret(){const text=document.getElementById('message').value.trim(),box=document.getElementById('interpretResult');if(!text)return;box.style.display='block';box.className='result';box.textContent='Interpretando...';try{const r=await api('/interpret',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId,text,execute:false})});box.innerHTML=`<b>Proposta</b><pre>${esc(JSON.stringify(r.proposal||r.interpretation||r,null,2))}</pre><b>Status:</b> PENDENTE <span class='muted'>(${esc(r.source||'local')})</span><br><br><button class='btn' onclick="confirmInterpretation('${r.interpretation_id}')">Confirmar e registrar</button>`;box.className='result warn'}catch(e){box.textContent='Não foi possível interpretar: '+e.message;box.className='result'} }
+function downloadFile(url){window.location.href=url}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+refresh();
+</script>
+</body></html>
