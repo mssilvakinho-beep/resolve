@@ -1,39 +1,33 @@
-# RESOLVE 2.0 — CORE + PAINEL + IA opcional
+# RESOLVE 2.0 CORE
 
-Versão de staging para o RESOLVE 2.0.
+Núcleo operacional do RESOLVE: memória, casos, financeiro, documentos, relatórios e interpretação controlada.
 
-## Arquitetura
-- FastAPI
-- SQLite por padrão (`data/resolve.db`)
-- Painel web em `/`
-- Memória, casos, eventos, financeiro, documentos e relatórios
-- PDF e Excel
-- Interpretador local
-- OpenAI opcional via `OPENAI_API_KEY`
+## O que esta versão entrega
+- Usuários, contatos e casos.
+- Eventos, documentos e movimentações financeiras relacionados aos casos.
+- Memória global e memória detalhada por caso.
+- Relatórios PDF e Excel.
+- Interpretador PT-BR determinístico como camada de segurança/fallback.
+- Fluxo **interpretar → propor → confirmar → registrar**.
+- Endpoint `/interpret` para transformar linguagem natural em proposta estruturada.
+- Endpoint `/interpret/confirm` para executar somente após confirmação explícita.
+- OpenAI preparada como dependência para a próxima etapa; a interpretação local continua funcionando sem chave.
 
-## Regra central
-IA interpreta → sistema valida → usuário confirma → sistema registra.
+## Regra de segurança
+O interpretador não deve executar ações externas. A proposta é persistida como `PENDENTE` e só vira registro após confirmação, salvo quando um modo de execução explicitamente autorizado atingir o nível de confiança definido.
 
-## Execução
+## Rodar localmente
 ```bash
 pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8787
+uvicorn app.main:app --reload
 ```
 
-## Docker
+Swagger: `/docs`
+
+## Testes
 ```bash
-docker build -t resolve-2 .
-docker run -p 8787:8787 resolve-2
+pytest -q
 ```
 
-## Endpoints principais
-- `GET /`
-- `GET /health`
-- `POST /users`
-- `POST /interpret`
-- `POST /interpret/confirm`
-- `GET /memory/{user_id}`
-- `GET /finance/summary/{user_id}`
-- `GET /reports/{user_id}/pdf`
-- `GET /reports/{user_id}/excel`
-- `GET /docs`
+## Próxima camada
+Conectar o interpretador ao modelo da OpenAI para melhorar compreensão de linguagem natural, mantendo o backend como responsável por validação, regras, cálculos, persistência e auditoria.
